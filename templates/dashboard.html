@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelance Flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        window.initialDashboardData = {{ dashboard_data | tojson }};
+        window.firebaseConfig = {{ firebase_config | tojson }};
+        window.marketplaceSummary = {{ marketplace_summary | tojson }};
+    </script>
+    <script type="module" src="{{ url_for('static', filename='firebase-init.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</head>
+<body>
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div>
+                <p class="eyebrow">Workspace</p>
+                <h1>Freelance Flow</h1>
+                <p class="muted">A focused operating system for independent professionals managing delivery, relationships, and growth.</p>
+            </div>
+
+            <nav class="nav-links">
+                <a class="nav-tab {{ 'active' if active_page == 'overview' else '' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a class="nav-tab {{ 'active' if active_page == 'projects' else '' }}" href="{{ url_for('projects') }}">Projects</a>
+                <a class="nav-tab {{ 'active' if active_page == 'clients' else '' }}" href="{{ url_for('clients') }}">Clients</a>
+                <a class="nav-tab {{ 'active' if active_page == 'bookmarks' else '' }}" href="{{ url_for('bookmarks') }}">Bookmarks</a>
+                <a class="nav-tab {{ 'active' if active_page == 'companion' else '' }}" href="{{ url_for('companion') }}">Companion</a>
+                <a class="nav-tab {{ 'active' if active_page == 'integrations' else '' }}" href="{{ url_for('integrations') }}">Integrations</a>
+                <a class="nav-tab {{ 'active' if active_page == 'account' else '' }}" href="{{ url_for('account') }}">Account</a>
+            </nav>
+
+            <div class="sidebar-status">
+                <span class="status-pill" id="sync-status">Syncing with Firebase</span>
+                <p class="muted small-text">Workspace: <span id="workspace-id-label">private-workspace</span></p>
+                <span class="status-pill" id="auth-status">Guest mode</span>
+                <p class="muted small-text" id="auth-email-label">No account connected</p>
+                <button class="secondary-button" id="sign-out-button" type="button" hidden>Sign Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            {% if active_page == 'overview' %}
+            <section class="hero active-page-panel">
+                <div>
+                    <p class="eyebrow">Daily Command Center</p>
+                    <h2>Run your freelance business from one clean workspace.</h2>
+                    <p class="muted">
+                        Manage active delivery, client communication, saved resources, personal priorities, and account connections in a structured dashboard.
+                    </p>
+                </div>
+                <div class="stats-grid" id="stats-grid">
+                    <article class="stat-card">
+                        <span>Focus Score</span>
+                        <strong id="focus-score"></strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Active Clients</span>
+                        <strong id="active-clients"></strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Pending Follow-ups</span>
+                        <strong id="pending-followups"></strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Weekly Goal</span>
+                        <strong id="weekly-goal"></strong>
+                    </article>
+                </div>
+
+                <div class="panel-inline">
+                    <div class="section-heading">
+                        <h3>Quick Actions</h3>
+                        <p>Move directly into the operational areas you use most.</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a class="action-button" href="{{ url_for('projects') }}">Add Project</a>
+                        <a class="action-button" href="{{ url_for('clients') }}">Add Client</a>
+                        <a class="action-button" href="{{ url_for('bookmarks') }}">Save Bookmark</a>
+                        <a class="action-button" href="{{ url_for('integrations') }}">Connect Fiverr</a>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if active_page == 'projects' %}
+            <section class="panel active-page-panel">
+                <div class="section-heading">
+                    <h3>Projects</h3>
+                    <p>Create delivery records, assign owners, and monitor deadlines with clarity.</p>
+                </div>
+                <div class="workspace-grid">
+                    <form class="form-card" id="project-form">
+                        <h4>Add Project</h4>
+                        <label for="project-name">Project Name</label>
+                        <input id="project-name" name="name" placeholder="Brand website redesign" required>
+                        <label for="project-client">Client</label>
+                        <input id="project-client" name="client" placeholder="Client or company name" required>
+                        <label for="project-status">Status</label>
+                        <select id="project-status" name="status">
+                            <option>Planned</option>
+                            <option>In Progress</option>
+                            <option>Review</option>
+                            <option>Completed</option>
+                        </select>
+                        <label for="project-deadline">Deadline</label>
+                        <input id="project-deadline" name="deadline" type="date" required>
+                        <button type="submit" class="primary-button">Save Project</button>
+                    </form>
+                    <div class="content-stack">
+                        <div class="list-header">
+                            <h4>Your Projects</h4>
+                            <p id="projects-count"></p>
+                        </div>
+                        <div class="card-grid" id="projects-list"></div>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if active_page == 'clients' %}
+            <section class="panel active-page-panel">
+                <div class="section-heading">
+                    <h3>Clients</h3>
+                    <p>Maintain a professional client registry with contacts, channels, and relationship status.</p>
+                </div>
+                <div class="workspace-grid">
+                    <form class="form-card" id="client-form">
+                        <h4>Add Client</h4>
+                        <label for="client-name">Client Name</label>
+                        <input id="client-name" name="name" placeholder="Studio or person name" required>
+                        <label for="client-contact">Main Contact</label>
+                        <input id="client-contact" name="contact" placeholder="Email or person" required>
+                        <label for="client-channel">Channel</label>
+                        <select id="client-channel" name="channel">
+                            <option>Email</option>
+                            <option>Upwork</option>
+                            <option>Fiverr</option>
+                            <option>WhatsApp</option>
+                            <option>LinkedIn</option>
+                        </select>
+                        <label for="client-health">Relationship Health</label>
+                        <select id="client-health" name="health">
+                            <option>New Lead</option>
+                            <option>Strong</option>
+                            <option>Needs Follow-up</option>
+                            <option>At Risk</option>
+                        </select>
+                        <button type="submit" class="primary-button">Save Client</button>
+                    </form>
+                    <div class="content-stack">
+                        <div class="list-header">
+                            <h4>Your Clients</h4>
+                            <p id="clients-count"></p>
+                        </div>
+                        <div class="card-grid" id="clients-list"></div>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if active_page == 'bookmarks' %}
+            <section class="panel active-page-panel">
+                <div class="section-heading">
+                    <h3>Freelance Bookmarks</h3>
+                    <p>Store operational links, portals, and reference pages in a central launchpad.</p>
+                </div>
+                <div class="workspace-grid">
+                    <form class="form-card" id="bookmark-form">
+                        <h4>Add Bookmark</h4>
+                        <label for="bookmark-label">Label</label>
+                        <input id="bookmark-label" name="label" placeholder="My proposal board" required>
+                        <label for="bookmark-url">URL</label>
+                        <input id="bookmark-url" name="url" placeholder="https://example.com" required>
+                        <button type="submit" class="primary-button">Save Bookmark</button>
+                    </form>
+                    <div class="content-stack">
+                        <div class="list-header">
+                            <h4>Your Bookmarks</h4>
+                            <p id="bookmarks-count"></p>
+                        </div>
+                        <div class="bookmark-grid" id="bookmarks-list"></div>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if active_page == 'companion' %}
+            <section class="panel active-page-panel">
+                <div class="section-heading">
+                    <h3>Personal Companion</h3>
+                    <p>Keep execution tight with a current focus score, weekly objective, and working notes.</p>
+                </div>
+                <div class="workspace-grid">
+                    <form class="form-card" id="companion-form">
+                        <h4>Update Companion</h4>
+                        <label for="focus-input">Focus Score</label>
+                        <input id="focus-input" name="focus_score" type="number" min="0" max="100" required>
+                        <label for="followup-input">Pending Follow-ups</label>
+                        <input id="followup-input" name="pending_followups" type="number" min="0" required>
+                        <label for="goal-input">Weekly Goal</label>
+                        <input id="goal-input" name="weekly_goal" placeholder="Close 1 client this week" required>
+                        <label for="tips-input">Companion Tips</label>
+                        <textarea id="tips-input" name="tips" rows="5" placeholder="One tip per line"></textarea>
+                        <button type="submit" class="primary-button">Update Companion</button>
+                    </form>
+                    <div class="content-stack">
+                        <div class="list-header">
+                            <h4>Current Guidance</h4>
+                            <p>These notes update the top dashboard instantly.</p>
+                        </div>
+                        <div class="list-card" id="companion-tips-list"></div>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if active_page == 'integrations' %}
+            <section class="panel active-page-panel">
+                <div class="section-heading">
+                    <h3>Integrations</h3>
+                    <p>Maintain marketplace connection details and prepare the workspace for deeper platform sync.</p>
+                </div>
+                <div class="integration-grid">
+                    <form class="form-card" id="fiverr-form">
+                        <h4>Connect Fiverr</h4>
+                        <label for="fiverr-username">Fiverr Username</label>
+                        <input id="fiverr-username" name="username" placeholder="your_fiverr_name" required>
+                        <label for="fiverr-profile">Profile URL</label>
+                        <input id="fiverr-profile" name="profileUrl" placeholder="https://www.fiverr.com/yourname">
+                        <button type="submit" class="primary-button">Save Fiverr Details</button>
+                    </form>
+
+                    <form class="form-card" id="upwork-form">
+                        <h4>Connect Upwork</h4>
+                        <label for="upwork-username">Upwork Username</label>
+                        <input id="upwork-username" name="username" placeholder="your_upwork_name" required>
+                        <label for="upwork-profile">Profile URL</label>
+                        <input id="upwork-profile" name="profileUrl" placeholder="https://www.upwork.com/freelancers/~yourid">
+                        <button type="submit" class="primary-button">Save Upwork Details</button>
+                    </form>
+                </div>
+
+                <div>
+                    <div class="section-heading compact">
+                        <h3>Connection Status</h3>
+                        <p>Current connection records for your workspace and external marketplace accounts.</p>
+                    </div>
+                    <div class="card-grid" id="integration-status-list">
+                        <article class="info-card integration-card">
+                            <h4>Firebase</h4>
+                            <p class="connected">Configured</p>
+                            <p><strong>Project ID:</strong> {{ firebase_config.projectId }}</p>
+                            <p><strong>Database URL:</strong> {{ firebase_config.databaseURL }}</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if active_page == 'account' %}
+            <section class="panel active-page-panel">
+                <div class="section-heading">
+                    <h3>Account</h3>
+                    <p>Create a secure account or sign in to access your personal workspace data.</p>
+                </div>
+                <div class="integration-grid">
+                    <form class="form-card" id="login-form">
+                        <h4>Login</h4>
+                        <label for="login-email">Email</label>
+                        <input id="login-email" name="email" type="email" placeholder="you@example.com" required>
+                        <label for="login-password">Password</label>
+                        <input id="login-password" name="password" type="password" placeholder="Your password" required>
+                        <button type="submit" class="primary-button">Login</button>
+                    </form>
+
+                    <form class="form-card" id="signup-form">
+                        <h4>Create Account</h4>
+                        <label for="signup-email">Email</label>
+                        <input id="signup-email" name="email" type="email" placeholder="you@example.com" required>
+                        <label for="signup-password">Password</label>
+                        <input id="signup-password" name="password" type="password" minlength="6" placeholder="Minimum 6 characters" required>
+                        <button type="submit" class="primary-button">Create Account</button>
+                    </form>
+                </div>
+
+                <div class="info-card">
+                    <h4>How it works</h4>
+                    <p>Guest users work in a temporary shared workspace. Signed-in users automatically switch to a private workspace based on their Firebase user id.</p>
+                    <p>Email and password sign-in must be enabled in your Firebase Authentication settings for these forms to work.</p>
+                </div>
+            </section>
+            {% endif %}
+
+            <div class="toast" id="toast"></div>
+        </main>
+    </div>
+</body>
+</html>
