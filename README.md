@@ -45,9 +45,33 @@ Important:
 
 ## Shared workspace
 
-- By default the app uses the Firebase workspace id `shared-demo`.
+- By default the app uses the Firebase workspace id `workspace`.
 - You can open a custom shared workspace with a URL like `http://127.0.0.1:5000/projects?workspace=my-team`.
 - When deployed publicly, that same workspace id can be shared with your team or your clients.
+
+## Firebase changes
+
+This repo now includes Firebase configuration files for Realtime Database:
+
+- `database.rules.json`
+- `firebase.json`
+- `.firebaserc`
+
+Included rules:
+
+- only authenticated users can read workspace data
+- only authenticated users can write workspace data
+
+To apply these Firebase changes:
+
+1. Install the Firebase CLI
+2. Login with `firebase login`
+3. Run `firebase deploy --only database`
+
+You can also paste the contents of `database.rules.json` into:
+`Firebase Console -> Realtime Database -> Rules`
+
+If you want stricter per-user private data rules next, I can refactor the app paths and give you locked-down user-by-user rules as well.
 
 ## Deploy on Render
 

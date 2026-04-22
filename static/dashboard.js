@@ -602,8 +602,10 @@ function getActiveWorkspaceId() {
 
     const params = new URLSearchParams(window.location.search);
     const requested = params.get("workspace");
-    const fallback = "shared-demo";
-    const rawValue = requested || window.localStorage.getItem("freelance-flow-workspace") || fallback;
+    const fallback = "workspace";
+    const storedValue = window.localStorage.getItem("freelance-flow-workspace");
+    const migratedStoredValue = storedValue === "shared-demo" ? fallback : storedValue;
+    const rawValue = requested || migratedStoredValue || fallback;
     const cleaned = rawValue.toLowerCase().replace(/[^a-z0-9-_]/g, "-").slice(0, 40) || fallback;
     window.localStorage.setItem("freelance-flow-workspace", cleaned);
     return cleaned;

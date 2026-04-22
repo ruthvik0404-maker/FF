@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "workspaces": {
+      "$workspaceId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
