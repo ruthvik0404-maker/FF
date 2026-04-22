@@ -48,3 +48,26 @@ Important:
 - By default the app uses the Firebase workspace id `shared-demo`.
 - You can open a custom shared workspace with a URL like `http://127.0.0.1:5000/projects?workspace=my-team`.
 - When deployed publicly, that same workspace id can be shared with your team or your clients.
+
+## Deploy on Render
+
+Official Render docs for Flask recommend:
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn app:app`
+
+This repo now includes both:
+- `gunicorn` in `requirements.txt`
+- `render.yaml` for a Render web service blueprint
+
+To deploy:
+
+1. Sign in to [Render](https://render.com/)
+2. Choose `New` -> `Blueprint`
+3. Connect GitHub and select this repo:
+   [https://github.com/ruthvik0404-maker/FF](https://github.com/ruthvik0404-maker/FF)
+4. Render should detect `render.yaml`
+5. Approve the service creation and deploy
+
+Primary sources:
+- [Deploy a Flask App on Render](https://render.com/docs/deploy-flask)
+- [Render Web Services](https://render.com/docs/web-services)
